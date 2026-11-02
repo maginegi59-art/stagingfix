@@ -58,8 +58,8 @@ struct ContentView: View {
 		}
 	}
 
-	private func importPairingFile(_ result: Result<[URL], Error>) {
-		guard case .success(let urls) = result, let src = urls.first else { return }
+	private func importPairingFile(_ result: Result<URL, Error>) {
+		guard case .success(let src) = result else { return }
 		let accessing = src.startAccessingSecurityScopedResource()
 		defer { if accessing { src.stopAccessingSecurityScopedResource() } }
 		let dest = URL(fileURLWithPath: HeartbeatManager.pairingFile())

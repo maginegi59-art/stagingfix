@@ -1,0 +1,42 @@
+name: Build StagingFix
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        working-directory: StagingFix
+        run: xcodegen generate
+
+      - name: Build (unsigned, device)
+        working-directory: StagingFix
+        run: |
+          xcodebuild \
+            -project StagingFix.xcodeproj \
+            -scheme StagingFix \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package IPA
+        working-directory: StagingFix
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/StagingFix.app Payload/
+          zip -qry StagingFix.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StagingFix-unsigned
+          path: StagingFix/StagingFix.ipa
